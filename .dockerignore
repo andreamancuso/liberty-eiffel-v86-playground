@@ -1,0 +1,7 @@
+*
+!docker/
+!docker/**
+!examples/
+!examples/**
+!tests/
+!tests/**

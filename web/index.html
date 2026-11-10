@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Liberty Eiffel · v86 benchmark</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body { margin: 32px auto; padding: 0 24px; max-width: 1100px; color: #e5e9f0; background: #141922; font: 15px/1.6 system-ui,sans-serif; }
+    h1 { font-size: 28px; } p { color: #b0bdd0; }
+    button { padding: 10px 18px; background: #b8edc6; color: #15221a; border: 0; border-radius: 5px; font: inherit; cursor: pointer; margin-right: 8px; }
+    button:disabled { opacity: .4; cursor: wait; }
+    pre { background: #0d1118; border: 1px solid #374150; border-radius: 6px; padding: 20px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 500px; overflow: auto; font: 13px/1.5 ui-monospace,Consolas,monospace; }
+    #summary { color: #b8edc6; } a { color: #b8d9ed; }
+    #output { height: 440px; max-height: 65vh; color: #d5ecd9; }
+    #status[data-busy="true"]::before { content: '●'; display: inline-block; color: #b8edc6; margin-right: 8px; animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .3; } }
+    @media (prefers-reduced-motion: reduce) { #status[data-busy="true"]::before { animation: none; } }
+  </style>
+  <script src="/assets/runtime/libv86.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <h1>Liberty Eiffel · v86 benchmark</h1>
+  <p>Debian i386, Liberty Eiffel and GCC execute in this browser. All runtime files come from this static local server.</p>
+  <p id="status" role="status" data-busy="true">Loading Linux…</p>
+  <button id="benchmark" disabled>Run hello / warm / error benchmark</button>
+  <button id="restart">Restart VM</button>
+  <h2>Live terminal</h2>
+  <p>Boot messages, compiler progress and program output appear here as they arrive. Compilation can take several minutes.</p>
+  <pre id="output" role="log" aria-label="Live terminal output" tabindex="0"></pre>
+  <details><summary>Benchmark timings and results</summary><pre id="summary">Waiting for Linux to start.</pre></details>
+  <details><summary>Linux boot and control log</summary><pre id="serial"></pre></details>
+  <p>Experimental benchmark, before editor integration. Powered by <a href="https://github.com/copy/v86">v86</a> and <a href="https://liberty-eiffel.org/">Liberty Eiffel</a>.</p>
+</body>
+</html>

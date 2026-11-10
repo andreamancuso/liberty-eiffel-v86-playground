@@ -1,0 +1,13 @@
+artifacts/
+test-results/
+vendor/
+node_modules/
+*.log
+.env
+.env.*
+!.env.example
+*.ext2
+*.wasm
+*.bin
+.DS_Store
+Thumbs.db

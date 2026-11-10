@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-10T22:06:40.897Z",
+  "passed": true,
+  "browser": "141.0.7390.37",
+  "cpu": "AMD Ryzen 7 5700U with Radeon Graphics",
+  "guestMemoryMiB": 1024,
+  "bootMs": 44081.044999999925,
+  "streamedBytes": 89509,
+  "liveOutputBeforeCompilerExit": true,
+  "runs": [
+    {
+      "label": "Cold hello",
+      "compileStatus": 0,
+      "executeStatus": 0,
+      "compileMs": 251826.33999999985,
+      "executeMs": 952.0249999985099,
+      "streamedBytes": 31996,
+      "programOutput": "Hello from Eiffel in v86! Browser source marker: 42\n\n"
+    },
+    {
+      "label": "Warm hello",
+      "compileStatus": 0,
+      "executeStatus": 0,
+      "compileMs": 241187.58000000007,
+      "executeMs": 1054.3849999997765,
+      "streamedBytes": 31996,
+      "programOutput": "Hello from Eiffel in v86! Browser source marker: 42\n\n"
+    },
+    {
+      "label": "Intentional error",
+      "compileStatus": 1,
+      "executeStatus": null,
+      "compileMs": 80004.0399999991,
+      "executeMs": null,
+      "streamedBytes": 25517,
+      "programOutput": ""
+    }
+  ],
+  "network": {
+    "requests": 449,
+    "bytes": 111578032,
+    "methods": {
+      "GET": 449
+    },
+    "origins": {
+      "http://127.0.0.1:8080": 449
+    }
+  },
+  "failures": []
+}

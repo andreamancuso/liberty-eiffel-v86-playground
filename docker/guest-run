@@ -1,0 +1,30 @@
+#!/bin/bash
+set -u
+run_id=${1:?Expected numeric run ID}
+case "$run_id" in ''|*[!0-9]*) exit 2;; esac
+export PATH=/opt/liberty/target/bin:/usr/local/bin:/usr/bin:/bin
+export HOME=/home/playground USER=playground LANG=C.UTF-8 LC_ALL=C
+job=/work/job-$run_id
+mkdir "$job" || exit 2
+cd "$job" || exit 2
+cp "/exchange/input-$run_id.e" hello.e || exit 2
+printf 'V86_PHASE:%s:compile:start\n' "$run_id"
+timeout 600s stdbuf -oL -eL se c -verbose -no_split -all_check -o hello hello.e 2>&1 | tee compile.log > /dev/ttyS1
+# Preserve the compiler's status, not tee's (especially for invalid Eiffel).
+compile_status=${PIPESTATUS[0]}
+# v86's read_file can reject a new, never-written empty file. Keep log transport
+# nonempty even when the compiler is silent, and flush 9p before signalling JS.
+printf '\n' >> compile.log
+cp compile.log "/exchange/compile-$run_id.log"
+sync
+printf 'V86_PHASE:%s:compile:end:%s\n' "$run_id" "$compile_status"
+if [ "$compile_status" -eq 0 ]; then
+    printf 'V86_PHASE:%s:execute:start\n' "$run_id"
+    timeout 10s stdbuf -oL -eL ./hello 2>&1 | tee execute.log > /dev/ttyS1
+    execute_status=${PIPESTATUS[0]}
+    printf '\n' >> execute.log
+    cp execute.log "/exchange/execute-$run_id.log"
+    sync
+    printf 'V86_PHASE:%s:execute:end:%s\n' "$run_id" "$execute_status"
+fi
+printf 'V86_DONE:%s\n' "$run_id"

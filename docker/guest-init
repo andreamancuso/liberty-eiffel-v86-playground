@@ -1,0 +1,28 @@
+#!/bin/sh
+# Minimal PID 1, with a fixed command protocol on the emulated serial port.
+export PATH=/opt/liberty/target/bin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export HOME=/home/playground USER=playground LANG=C.UTF-8 LC_ALL=C TERM=dumb
+mountpoint -q /proc || mount -t proc proc /proc
+mountpoint -q /sys || mount -t sysfs sysfs /sys
+mountpoint -q /dev || mount -t devtmpfs devtmpfs /dev
+mkdir -p /dev/pts /run /work
+mount -t tmpfs -o size=256m,mode=1777 tmpfs /work
+exec </dev/ttyS0 >/dev/ttyS0 2>&1
+stty -echo -onlcr
+# A separate serial port carries output; compiler/program text cannot become
+# commands or completion markers on the control port.
+chown playground:playground /dev/ttyS1
+stty -F /dev/ttyS1 -echo -onlcr
+printf '\nV86_EIFFEL_READY\n'
+while IFS= read -r command; do
+    case "$command" in
+        run\ *)
+            run_id=${command#run }
+            case "$run_id" in ''|*[!0-9]*) printf 'INVALID_REQUEST\n'; continue;; esac
+            su -s /bin/sh playground -c "/usr/local/bin/v86-run $run_id"
+            ;;
+        *) printf 'INVALID_REQUEST\n';;
+    esac
+done
+# PID 1 must not exit if serial input closes.
+while :; do sleep 3600; done
