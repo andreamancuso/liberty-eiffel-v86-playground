@@ -24,17 +24,6 @@ Open **http://localhost:8082**, wait for Linux, then click **Run hello / warm / 
 
 **Restart VM** discards guest changes. Stop the local server with `docker compose down`. Set `PLAYGROUND_PORT` in your shell or a local `.env` file to use another port, for example `PLAYGROUND_PORT=8083`.
 
-## Verify in Docker
-
-With the static server running:
-
-```sh
-docker compose --profile test build test
-docker compose --profile test run --rm test
-```
-
-Playwright runs real Chromium inside Docker. It checks visible boot output, compiler output arriving before compilation finishes, the elapsed counter, two successful executions, an intentional compiler error with no execution, and exclusively local static GET requests. Reports and screenshots go into the ignored `test-results/` directory. The Docker toolchain build separately checks ELF32 architecture and native hello/error behavior.
-
 ## How it works
 
 ```text
@@ -53,7 +42,7 @@ The toolchain is installed ahead of time. Compilation uses `-verbose -no_split -
 
 ## Recorded results and limits
 
-Verified on 2026-11-10 using Chromium 141.0.7390.37 / Playwright 1.56.1 in Docker Desktop Linux on Windows, on an AMD Ryzen 7 5700U. These are individual local observations with verbose streaming enabled. The compact [benchmark record](docs/benchmark.json) and screenshot come from the working prototype before repository layout cleanup; the application and guest execution code are unchanged.
+Recorded on 2026-11-10 using Chromium 141.0.7390.37 in Docker Desktop on Windows, on an AMD Ryzen 7 5700U. The [benchmark record](docs/benchmark.json) and screenshot show one run of the prototype with verbose streaming enabled.
 
 | Check | Result |
 | --- | --- |
@@ -78,9 +67,8 @@ Local hosting uses loopback HTTP with COOP/COEP headers. Production hosting woul
 | v86 npm runtime | `0.5.473` |
 | v86 firmware/packaging source | `315b2b0b758703ef0e6cc7b4088d6068f83f3c20` |
 | Debian Bookworm base | Digest pinned in the Dockerfiles |
-| Browser runner | Playwright `1.56.1` |
 
-Generated npm integrity metadata, Debian package versions and filesystem checksums are saved under `artifacts/`. Debian repositories remain live, so this is a repeatable build procedure, not a bit-identical archive. The recorded image used kernel `6.1.0-54-686`. No local clone of an upstream dependency is required.
+The build downloads the pinned v86 archive directly and verifies its SHA-512 checksum. The archive checksum, Debian package versions and filesystem checksums are saved under `artifacts/`. Debian repositories remain live, so package updates can change the output. The recorded image used kernel `6.1.0-54-686`.
 
 ## License
 

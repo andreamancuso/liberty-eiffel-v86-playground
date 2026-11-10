@@ -1,4 +1,5 @@
 ARG TOOLCHAIN_IMAGE=liberty-eiffel-v86:toolchain
+ARG DEBIAN_IMAGE=debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc
 FROM ${TOOLCHAIN_IMAGE} AS guest
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
@@ -17,27 +18,28 @@ COPY docker/guest-init /usr/local/sbin/playground-init
 COPY docker/guest-run /usr/local/bin/v86-run
 RUN chmod 755 /usr/local/sbin/playground-init /usr/local/bin/v86-run \
     && mkdir -p /exchange /work /run /proc /sys /dev/pts \
-    && chown 1000:1000 /exchange /work \
-    && dpkg-query -W > /opt/proof/v86-packages.tsv
+    && chown 1000:1000 /exchange /work
 
-FROM --platform=linux/amd64 mcr.microsoft.com/playwright:v1.56.1-noble AS assets
+FROM ${DEBIAN_IMAGE} AS packager
+ARG V86_VERSION=0.5.473
+ARG V86_SHA512=98d1c1d035c399fc67d02ae5a829a580c4755bb68ab83fac1e649cb4b71344e3b0a4ebdb138aac02199a13a572fab8907dc1383df036c6f5b9f7f657b189c737
 ARG V86_SOURCE_REV=315b2b0b758703ef0e6cc7b4088d6068f83f3c20
-WORKDIR /assets
-RUN npm install --no-audit --no-fund --save-exact v86@0.5.473
-RUN mkdir /v86-source \
-    && curl -fsSL --retry 3 "https://codeload.github.com/copy/v86/tar.gz/${V86_SOURCE_REV}" \
-       | tar -xz --strip-components=1 -C /v86-source \
-    && printf '%s\n' "$V86_SOURCE_REV" > /v86-source/SOURCE_REVISION
-
-FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc AS packager
-RUN apt-get update && apt-get install -y --no-install-recommends python3 \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl python3 \
     && rm -rf /var/lib/apt/lists/*
+WORKDIR /assets
+RUN mkdir /v86-source /v86-runtime \
+    && curl -fsSL --retry 3 "https://registry.npmjs.org/v86/-/v86-${V86_VERSION}.tgz" -o "v86-${V86_VERSION}.tgz" \
+    && printf '%s  v86-%s.tgz\n' "$V86_SHA512" "$V86_VERSION" > v86-runtime.sha512 \
+    && sha512sum -c v86-runtime.sha512 \
+    && tar -xzf "v86-${V86_VERSION}.tgz" --strip-components=1 -C /v86-runtime \
+    && curl -fsSL --retry 3 "https://codeload.github.com/copy/v86/tar.gz/${V86_SOURCE_REV}" -o v86-source.tgz \
+    && tar -xzf v86-source.tgz --strip-components=1 -C /v86-source \
+    && printf '%s\n' "$V86_SOURCE_REV" > /v86-source/SOURCE_REVISION \
+    && rm "v86-${V86_VERSION}.tgz" v86-source.tgz
 COPY --from=guest / /rootfs/
-COPY --from=assets /v86-source/ /v86-source/
-COPY --from=assets /assets/node_modules/v86/ /v86-runtime/
-COPY --from=assets /assets/package-lock.json /out/npm-package-lock.json
 RUN mkdir -p /out/fs /out/runtime /out/bios /out/licenses \
-    && cp /v86-runtime/build/libv86.js /v86-runtime/build/v86*.wasm /out/runtime/ \
+    && cp /v86-runtime/build/libv86.js /v86-runtime/build/v86.wasm /v86-runtime/build/v86-fallback.wasm /out/runtime/ \
+    && cp /assets/v86-runtime.sha512 /out/ \
     && cp /v86-source/bios/seabios.bin /v86-source/bios/vgabios.bin /out/bios/ \
     && cp /v86-source/LICENSE /out/licenses/v86-BSD-2-Clause.txt \
     && cp /v86-source/LICENSE.MIT /out/licenses/v86-MIT-components.txt \
@@ -49,7 +51,7 @@ RUN mkdir -p /out/fs /out/runtime /out/bios /out/licenses \
     && cp /rootfs/boot/initrd.img-* /out/initrd.img \
     && python3 /v86-source/tools/fs2json.py --out /out/fs.json /rootfs \
     && python3 /v86-source/tools/copy-to-sha256.py /rootfs /out/fs \
-    && cp /rootfs/opt/proof/v86-packages.tsv /out/ \
+    && dpkg-query --admindir=/rootfs/var/lib/dpkg -W > /out/v86-packages.tsv \
     && du -sh /rootfs /out/fs > /out/sizes.txt \
     && cd /out && sha256sum vmlinuz initrd.img fs.json runtime/* bios/* > SHA256SUMS
 FROM scratch AS artifacts

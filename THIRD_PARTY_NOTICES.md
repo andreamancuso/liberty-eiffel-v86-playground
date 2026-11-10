@@ -1,6 +1,6 @@
 # Third-party notices
 
-The root MIT license covers this project's original UI, integration code, examples, tests and documentation. It does not relicense upstream software downloaded by the Docker build, or third-party material visible in the screenshot. Upstream files retain their own notices and license terms.
+The root MIT license covers this project's original UI, integration code, examples and documentation. Upstream software downloaded by the Docker build and third-party material visible in the screenshot retain their own license terms.
 
 ## v86 and firmware
 
@@ -19,9 +19,9 @@ The build downloads v86 npm package 0.5.473. Its runtime includes components wit
 
 The guest preserves Debian package copyright files. `artifacts/v86-packages.tsv` records installed versions; build recipes pin Liberty and the Debian base image. Debian's [source package archive](https://sources.debian.org/) and [snapshot archive](https://snapshot.debian.org/) can help locate matching source versions.
 
-## Build and test dependencies
+## Build and hosting dependencies
 
-The build/test workflow uses Debian packages, Python, npm, Microsoft Playwright (Apache-2.0 project, with separately licensed bundled browsers/dependencies), and Nginx (BSD-style project, with separately licensed image contents). They are downloaded as build/container dependencies and are not committed here. Their own package notices remain authoritative.
+The build uses Debian packages and Python for filesystem packaging. Local hosting uses Nginx, whose container image includes separately licensed dependencies. Each component retains its package notices.
 
 ## Before distributing generated images
 
