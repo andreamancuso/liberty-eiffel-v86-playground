@@ -24,6 +24,28 @@ Open **http://localhost:8082**, wait for Linux, then click **Run hello / warm / 
 
 **Restart VM** discards guest changes. Stop the local server with `docker compose down`. Set `PLAYGROUND_PORT` in your shell or a local `.env` file to use another port, for example `PLAYGROUND_PORT=8083`.
 
+### Rebuild from scratch in PowerShell
+
+Use a fresh checkout so the filesystem export starts in an empty directory. `--no-cache` rebuilds the compiler and filesystem. The separate Compose project serves the result on port 8083.
+
+```powershell
+cd C:\dev
+gh repo clone andreamancuso/liberty-eiffel-v86-playground liberty-eiffel-v86-clean
+if ($LASTEXITCODE -ne 0) { throw 'Clone failed' }
+cd .\liberty-eiffel-v86-clean
+
+docker build --no-cache --progress plain --platform linux/386 -f docker/toolchain.Dockerfile --target runtime -t liberty-eiffel-v86:toolchain .
+if ($LASTEXITCODE -ne 0) { throw 'Toolchain build failed' }
+
+docker build --no-cache --progress plain --platform linux/386 -f docker/Dockerfile --target artifacts --output type=local,dest=artifacts .
+if ($LASTEXITCODE -ne 0) { throw 'Filesystem build failed' }
+
+$env:PLAYGROUND_PORT = '8083'
+docker compose -p liberty-eiffel-v86-clean up -d web
+```
+
+Open **http://localhost:8083** and click **Run hello / warm / error benchmark** once Linux is ready. Stop this instance with `docker compose -p liberty-eiffel-v86-clean down` from the clean checkout.
+
 ## How it works
 
 ```text
